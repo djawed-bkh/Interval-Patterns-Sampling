@@ -1,14 +1,34 @@
-# Interval Pattern Sampling from Numerical Data
+# Repository Overview
 
-This repository provides everything necessary to evaluate **FIPS** and **HFIPS**, two approaches for sampling interval patterns from numerical data, proportionally to, respectively, frequency and the product of hyper-volume and frequency.
+This repository contains all the necessary components to evaluate **FIPS** and **HFIPS** — two approaches for sampling interval patterns from numerical data, proportionally to frequency (FIPS) and to the product of hyper-volume and frequency (HFIPS).
 
-## Content of the repository:
-1. **Source Code for FIPS:** Implementation of the FIPS sampling method (see src directory).
-2. **Source Code for HFIPS:** Implementation of the HIPS sampling method (see src directory).
-3. **Source Code for uniform Sampling (With Coverage):** A method for sampling interval patterns uniformly, ensuring non-empty coverage (see src directory).
-4. **Source Code for uniform Sampling (Without Coverage):** A method for uniform interval pattern sampling that does not guarantee coverage (see src directory).
-5. **Source code for lunching experiments:** All the experimental evaluation is implemented in the evaluation class. To execute a specific evaluation method, you just have to uncomment it in the main class (see main and evaluation classes in src directory)
-6. **Benchmark Datasets:** The datasets used in the experimental protocol (see benchmark directory).
-8. **Graphical Results:** Visual representations of the experimental results for each dataset (see the result directory).
+## Contents
 
+- **Source code for FIPS**  
+  Implementation of the FIPS sampling method.  
+  *(See the `src` directory)*
 
+- **Source code for HFIPS**  
+  Implementation of the HFIPS sampling method.  
+  *(See the `src` directory)*
+
+- **Source code for uniform sampling (with coverage)**  
+  A method for uniformly sampling interval patterns while ensuring non-empty coverage.  
+  *(See the `src` directory)*
+
+- **Source code for uniform sampling (without coverage)**  
+  A method for uniform sampling of interval patterns without coverage guarantees.  
+  *(See the `src` directory)*
+
+- **Source code for running experiments**  
+  All experimental evaluations are implemented in the `Evaluation` class.  
+  To run a specific evaluation, uncomment the corresponding method call in the `Main` class.  
+  *(See the `src` directory)*
+
+- **Benchmark datasets**  
+  Datasets used in the experimental protocol.  
+  *(See the `benchmark` directory)*
+
+- **Graphical results**  
+  Visualizations of experimental results for each dataset.  
+  *(See the `result` directory)*
