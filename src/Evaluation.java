@@ -985,85 +985,7 @@ public class Evaluation {
 
 
 
- /*   public double PlausibilityDensityRandomIP(int n, int k, Database realDb) {
-        *//*
-         * Method that process the plausibility with the density metric
-         *
-         * n: is the number of IP
-         * k: is the number of randomized databases
-         * *//*
-        Database[] randDatasets;
-        double avgPrecision = 0;
-        double avgDifference = 0;
 
-        //---------------------------------------------------------- randomizing the initial dataset
-        randDatasets = new Database[k];
-        for (int i = 0; i < k; i++) {
-            randDatasets[i] = realDb.randomizeNumericalDB();
-            randDatasets[i].setDBInfos();
-        }
-        for (int i = 0; i < n; i++) {
-            IP ip = new RandomIPSampling(realDb).drawIP();
-            ArrayList<Integer> cov = ip.getCoverage();
-            double currVolume = ip.getVolume();
-            double density = cov.size() / currVolume;
-
-            for (int j = 0; j < k; j++) {
-                double denss = ip.processCoverage(randDatasets[j]).size() / currVolume;
-                double diff = density - denss;
-                if (diff < 0) {
-                    diff = 0;
-                }
-                if (density != Double.POSITIVE_INFINITY && diff != Double.POSITIVE_INFINITY) {
-                    avgDifference += diff;                // ajouter la difference de support dans avgDifference
-                    avgPrecision += density;
-                }
-            }
-        }
-
-        avgPrecision = avgDifference / avgPrecision;
-        return avgPrecision;
-    }*/
-
-   /* public double PlausibilityDensityIP(int n, int k, Database realDb) {
-        *//*
-         * Plausibility for density
-         * n is the number of IP
-         * k is the number of randomized databases
-         * *//*
-
-        Database[] randDatasets;
-        double avgPrecision = 0;
-        double avgDifference = 0;
-
-        //---------------------------------------------------------- randomizing the initial dataset
-        randDatasets = new Database[k];
-        for (int i = 0; i < k; i++) {
-            randDatasets[i] = realDb.randomizeNumericalDB();
-            randDatasets[i].setDBInfos();
-        }
-        for (int i = 0; i < n; i++) {
-            IP ip = new FIPS(realDb).drawIP();
-            ArrayList<Integer> cov = ip.getCoverage();
-            double currVolume = ip.getVolume();
-            double density = cov.size() / currVolume;
-
-            for (int j = 0; j < k; j++) {
-                double denss = ip.processCoverage(randDatasets[j]).size() / currVolume;
-                double diff = density - denss;
-                if (diff < 0) {
-                    diff = 0;
-                }
-                if (density != Double.POSITIVE_INFINITY && diff != Double.POSITIVE_INFINITY) {
-                    avgDifference += diff;                // ajouter la difference de support dans avgDifference
-                    avgPrecision += density;
-                }
-            }
-        }
-
-        avgPrecision = avgDifference / avgPrecision;
-        return avgPrecision;
-    }*/
 
 
     public double PlausibilityFrequencyHIPS(int seed,int n, int k, Database realDb) {
@@ -1457,8 +1379,160 @@ public class Evaluation {
     }
 
 
+    public void evolutionVolumeTimesFrequencyRandIP(int seed, int k, int rep , Database db, String output) {
+        /*
+         * Method that retrieves the frequency of k sampled interval patterns with the FIPS method
+         * */
 
-    public void evolutionVolumeRandIP(int seed,int k,int rep ,Database db, String output) {
+        List<BigDecimal> volume = new ArrayList<>();  // Store volume
+        Uniform sampling = new Uniform(db, seed);
+        for(int i =0; i < rep; i++){
+            if(volume.isEmpty()){
+                for (int j = 0; j < k; j++) {
+                    IP ip = sampling.drawIP();
+                    volume.add(ip.getVolume().multiply(BigDecimal.valueOf(ip.getCoverage().size())));  // Store the volume
+                    // Sort the list by frequency in increasing order
+                    volume.sort(Collections.reverseOrder());
+                }
+            }else {
+                List<BigDecimal> tempvolume = new ArrayList<>();  // Store volume
+                for (int j = 0; j < k; j++) {
+                    IP ip = sampling.drawIP();
+                    tempvolume.add(ip.getVolume().multiply(BigDecimal.valueOf(ip.getCoverage().size())));  // Store the volume
+                    // Sort the list by frequency in increasing order
+                    tempvolume.sort(Collections.reverseOrder());
+                }
+                for(int j = 0; j < volume.size(); j++){
+                    volume.set(j, volume.get(j).add(tempvolume.get(j)));
+                }
+
+            }
+        }
+
+        volume.replaceAll(bigDecimal -> bigDecimal.divide(BigDecimal.valueOf(rep),  new MathContext(10, RoundingMode.HALF_UP)));
+
+        // Prepare CSV data
+        StringBuilder csvData = new StringBuilder();
+        csvData.append("Volume\n");  // Header for CSV
+
+        for (BigDecimal frequency : volume) {
+            String scientificNotation = frequency.toEngineeringString();  // Transform to scientific notation
+            csvData.append(scientificNotation).append("\n");
+        }
+
+        // Write the CSV data to a file
+        try (FileWriter writer = new FileWriter(output)) {
+            writer.write(csvData.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Evaluation of Volume evolution done successfully");
+
+    }
+
+
+    public void evolutionVolumeTimesFrequencyHIPS(int seed, int k, int rep, Database db, String output) {
+        /*
+         * Method that retrieves the frequency of k sampled interval patterns with the FIPS method
+         * */
+
+        List<BigDecimal> volume = new ArrayList<>();  // Store volume
+        HFIPS sampling = new HFIPS(db, seed);
+        for(int i =0; i < rep; i++){
+            if(volume.isEmpty()){
+                for (int j = 0; j < k; j++) {
+                    IP ip = sampling.drawIP();
+                    volume.add(ip.getVolume().multiply(BigDecimal.valueOf(ip.getCoverage().size())) );  // Store the volume
+                    // Sort the list by volume in increasing order
+                    volume.sort(Collections.reverseOrder());
+                }
+            }else {
+                List<BigDecimal> tempvolume = new ArrayList<>();  // Store volume
+                for (int j = 0; j < k; j++) {
+                    IP ip = sampling.drawIP();
+                    tempvolume.add(ip.getVolume().multiply(BigDecimal.valueOf(ip.getCoverage().size())));  // Store the volume
+                    // Sort the list by volume increasing order
+                    tempvolume.sort(Collections.reverseOrder());
+                }
+                for(int j = 0; j < volume.size(); j++){
+                    volume.set(j, volume.get(j).add(tempvolume.get(j)));
+                }
+
+            }
+        }
+        volume.replaceAll(bigDecimal -> bigDecimal.divide(BigDecimal.valueOf(rep), new MathContext(10, RoundingMode.HALF_UP)));
+        // Prepare CSV data
+        StringBuilder csvData = new StringBuilder();
+        csvData.append("Volume\n");  // Header for CSV
+
+        for (BigDecimal frequency : volume) {
+            String scientificNotation = frequency.toEngineeringString();  // Transform to scientific notation
+            csvData.append(scientificNotation).append("\n");
+        }
+        // Write the CSV data to a file
+        try (FileWriter writer = new FileWriter(output)) {
+            writer.write(csvData.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Evaluation of Volume evolution done successfully");
+
+    }
+
+    public void evolutionVolumeTimesFrequencyFIPS(int seed, int k, int rep, Database db, String output) {
+        /*
+         * Method that retrieves the frequency of k sampled interval patterns with the FIPS method
+         * */
+
+        List<BigDecimal> volume = new ArrayList<>();  // Store volume
+        FIPS sampling = new FIPS(db, seed);
+        for(int i =0; i < rep; i++){
+            if(volume.isEmpty()){
+                for (int j = 0; j < k; j++) {
+                    IP ip = sampling.drawIP();
+                    volume.add(ip.getVolume().multiply(BigDecimal.valueOf(ip.getCoverage().size())));  // Store the volume
+                    // Sort the list by frequency in increasing order
+                    volume.sort(Collections.reverseOrder());
+                }
+            }else {
+                List<BigDecimal> tempvolume = new ArrayList<>();  // Store volume
+                for (int j = 0; j < k; j++) {
+                    IP ip = sampling.drawIP();
+                    tempvolume.add(ip.getVolume().multiply(BigDecimal.valueOf(ip.getCoverage().size())));  // Store the volume
+                    // Sort the list by frequency in increasing order
+                    tempvolume.sort(Collections.reverseOrder());
+                }
+                for(int j = 0; j < volume.size(); j++){
+                    volume.set(j, volume.get(j).add(tempvolume.get(j)));
+                }
+
+            }
+        }
+        volume.replaceAll(bigDecimal -> bigDecimal.divide(BigDecimal.valueOf(rep),  new MathContext(10, RoundingMode.HALF_UP)));
+
+        // Prepare CSV data
+        StringBuilder csvData = new StringBuilder();
+        csvData.append("Volume\n");  // Header for CSV
+
+        for (BigDecimal frequency : volume) {
+            String scientificNotation = frequency.toEngineeringString();  // Transform to scientific notation
+            csvData.append(scientificNotation).append("\n");
+        }
+
+        // Write the CSV data to a file
+        try (FileWriter writer = new FileWriter(output)) {
+            writer.write(csvData.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Evaluation of Volume evolution done successfully");
+
+    }
+
+
+
+
+    public void evolutionVolumeUniform(int seed, int k, int rep , Database db, String output) {
         /*
          * Method that retrieves the frequency of k sampled interval patterns with the FIPS method
          * */
@@ -1644,59 +1718,7 @@ public class Evaluation {
 
 
 
-/*
-    public void evolutionFrequenceRandomIP(int k,int rep, Database db, String output) {
-        */
-/*
-         * Method that retrives the frequency of k randomly sampled interval patterns
-         * *//*
 
-        List<Double> freqList = new ArrayList<>();  // Store frequency
-        RandomIPSampling sampling = new RandomIPSampling(db);
-        for(int i =0; i < rep; i++){
-            if(freqList.isEmpty()){
-                for (int j = 0; j < k; j++) {
-                    IP ip = sampling.drawIP();
-                    double coverageSize = (double) ip.getCoverage().size() / db.getObjectNumber();
-                    if (coverageSize == 0){
-                        System.out.println("ERROR: coverage is equal to zero !!! ");
-                    }
-                    freqList.add(coverageSize);  // Store the frequency
-                    freqList.sort(Collections.reverseOrder());
-                }
-            }else {
-                List<Double> tempfreq = new ArrayList<>();  // Store freq
-                for (int j = 0; j < k; j++) {
-                    IP ip = sampling.drawIP();
-                    double coverageSize = (double) ip.getCoverage().size() / db.getObjectNumber();
-                    tempfreq.add(coverageSize);  // Store the freq
-                    // Sort the list by frequency in increasing order
-                    tempfreq.sort(Collections.reverseOrder());
-                }
-                for(int j = 0; j < freqList.size(); j++){
-                    freqList.set(j, freqList.get(j)+tempfreq.get(j));
-                }
-            }
-        }
-        freqList.replaceAll(value -> value / k);
-        // Prepare CSV data
-        StringBuilder csvData = new StringBuilder();
-        csvData.append("CoverageSize\n");  // Header for CSV
-
-        for (Double frequency : freqList) {
-            csvData.append(frequency).append("\n");
-        }
-
-        // Write the CSV data to a file
-        try (FileWriter writer = new FileWriter(output)) {
-            writer.write(csvData.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Evaluation of frequency evolution done successfully");
-
-    }
-*/
 
 
     public void evolutionFrequenceHIPS(int seed,int k, Database db, String output) {
@@ -1735,56 +1757,6 @@ public class Evaluation {
 
     }
 
-/*    public void evolutionFrequenceRandomHIPS(int k,int rep, Database db, String output) {
-        *//*
-         * Method that retrives the frequency of k randomly sampled interval patterns
-         * *//*
-
-        List<Double> freqList = new ArrayList<>();  // Store frequency
-        HIPS sampling = new HIPS(db);
-        for(int i =0; i < rep; i++){
-            if(freqList.isEmpty()){
-                for (int j = 0; j < k; j++) {
-                    IP ip = sampling.drawIP();
-                    double coverageSize = (double) ip.getCoverage().size() / db.getObjectNumber();
-                    if (coverageSize == 0){
-                        System.out.println("ERROR: coverage is equal to zero !!! ");
-                    }
-                    freqList.add(coverageSize);  // Store the frequency
-                    freqList.sort(Collections.reverseOrder());
-                }
-            }else {
-                List<Double> tempfreq = new ArrayList<>();  // Store freq
-                for (int j = 0; j < k; j++) {
-                    IP ip = sampling.drawIP();
-                    double coverageSize = (double) ip.getCoverage().size() / db.getObjectNumber();
-                    tempfreq.add(coverageSize);  // Store the freq
-                    // Sort the list by frequency in increasing order
-                    tempfreq.sort(Collections.reverseOrder());
-                }
-                for(int j = 0; j < freqList.size(); j++){
-                    freqList.set(j, freqList.get(j)+tempfreq.get(j));
-                }
-            }
-        }
-        freqList.replaceAll(value -> value / k);
-        // Prepare CSV data
-        StringBuilder csvData = new StringBuilder();
-        csvData.append("CoverageSize\n");  // Header for CSV
-
-        for (Double frequency : freqList) {
-            csvData.append(frequency).append("\n");
-        }
-
-        // Write the CSV data to a file
-        try (FileWriter writer = new FileWriter(output)) {
-            writer.write(csvData.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Evaluation of frequency evolution done successfully");
-
-    }*/
 
 
     public void evolutionFrequenceFIPS(int seed,int k ,Database db, String output) {
@@ -1823,56 +1795,6 @@ public class Evaluation {
     }
 
 
-   /* public void evolutionFrequenceIP(int k,int rep ,Database db, String output) {
-        *//*
-         * Method that retrieves the frequency of k sampled interval patterns with the FIPS method
-         * *//*
-
-        List<Double> freqList = new ArrayList<>();  // Store frequency
-        FIPS sampling = new FIPS(db);
-        for(int i =0; i < rep; i++){
-            if(freqList.isEmpty()){
-                for (int j = 0; j < k; j++) {
-                    IP ip = sampling.drawIP();
-                    double coverageSize = (double) ip.getCoverage().size() / db.getObjectNumber();
-                    if (coverageSize == 0){
-                        System.out.println("ERROR: coverage is equal to zero !!! ");
-                    }
-                    freqList.add(coverageSize);  // Store the frequency
-                    freqList.sort(Collections.reverseOrder());
-                }
-            }else {
-                List<Double> tempfreq = new ArrayList<>();  // Store freq
-                for (int j = 0; j < k; j++) {
-                    IP ip = sampling.drawIP();
-                    double coverageSize = (double) ip.getCoverage().size() / db.getObjectNumber();
-                    tempfreq.add(coverageSize);  // Store the volume
-                    // Sort the list by frequency in increasing order
-                    tempfreq.sort(Collections.reverseOrder());
-                }
-                for(int j = 0; j < freqList.size(); j++){
-                    freqList.set(j, freqList.get(j)+tempfreq.get(j));
-                }
-            }
-        }
-        freqList.replaceAll(value -> value / k);
-
-        // Prepare CSV data
-        StringBuilder csvData = new StringBuilder();
-        csvData.append("CoverageSize\n");  // Header for CSV
-
-        for (Double frequency : freqList) {
-            csvData.append(frequency).append("\n");
-        }
-
-        // Write the CSV data to a file
-        try (FileWriter writer = new FileWriter(output)) {
-            writer.write(csvData.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Evaluation of frequency evolution done successfully");
-    }*/
 
 
     public double eqClassDiversityIP(int seed,int k, Database db) {
@@ -2120,10 +2042,9 @@ public class Evaluation {
     }
 
 
- /*   public double jaccard(Itemset a, Itemset b) {
-        return (double) intersection(a.getCoverage(), b.getCoverage()).size() / (double) union(a.getCoverage(), b.getCoverage()).size();
-    }*/
-
-
-
 }
+
+
+
+
+

@@ -1,3 +1,5 @@
+
+
 import java.util.ArrayList;
 
 
@@ -93,12 +95,20 @@ public class Main {
             //e.DensityEvaluationUniform(db,seed,1000);
 
 
-            //--------------------------Volume evaluation ----------------------------------------/
+            //--------------------------Volume evaluation ----------------------------------------/µ
 
             //e.evolutionVolumeHIPS(seed,500,10,db,"results/Volume/HIPS/"+database+"_volume_Evolution_HIPS.csv");
             //  e.evolutionVolumeFIPS(seed,500,10,db,"results/Volume/FIPS/"+database+"_volume_Evolution_FIPS.csv");
             //e.evolutionVolumeRandIP(seed,500,10,db,"results/Volume/RANDOM/"+database+"_volume_Evolution_Random.csv");
 
+
+
+
+            //--------------------------Volume times frequency evaluation ----------------------------------------/µ
+
+            //e.evolutionVolumeTimesFrequencyHIPS(seed,500,10,db,"results/Volume/HIPS/"+database+"_volume_Evolution_HIPS.csv");
+            //e.evolutionVolumeTimesFrequencyFIPS(seed,500,10,db,"results/Volume/FIPS/"+database+"_volume_Evolution_FIPS.csv");
+            //e.evolutionVolumeUniform(seed,500,10,db,"results/Volume/RANDOM/"+database+"_volume_Evolution_Random.csv");
 
             //----------------------------------- Percentage of empty coverages for totaly uniform sampling
             // without coverage control ---------------------------------------------------------------------------//
